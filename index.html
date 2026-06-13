@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashcards - Soutenance Mémoire</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f2f2;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .app {
+      width: 90%;
+      max-width: 900px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+      color: #b00045;
+    }
+
+    .subtitle {
+      margin-bottom: 25px;
+      font-size: 15px;
+      color: #555;
+    }
+
+    .progress {
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .card-container {
+      perspective: 1000px;
+      width: 100%;
+      min-height: 420px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      width: 100%;
+      min-height: 420px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      cursor: pointer;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      min-height: 420px;
+      backface-visibility: hidden;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      padding: 35px;
+      box-sizing: border-box;
+      text-align: left;
+      overflow-y: auto;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      background: #fff8fb;
+    }
+
+    .slide-label {
+      font-size: 15px;
+      font-weight: bold;
+      color: #b00045;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      font-size: 28px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .time {
+      font-size: 15px;
+      background: #f3dce6;
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .objective {
+      font-size: 18px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    ul {
+      padding-left: 22px;
+      line-height: 1.6;
+      font-size: 17px;
+    }
+
+    .oral-tip {
+      margin-top: 20px;
+      padding: 14px;
+      background: #eef4ff;
+      border-left: 4px solid #8ab6ff;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      background: #b00045;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #870034;
+    }
+
+    button.secondary {
+      background: #333;
+    }
+
+    button.secondary:hover {
+      background: #111;
+    }
+
+    .small-note {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>Flashcards - Soutenance Mémoire</h1>
+    <div class="subtitle">L’avatar entre expression et conformité</div>
+
+    <div class="progress" id="progress"></div>
+
+    <div class="card-container">
+      <div class="card" id="card" onclick="flipCard()">
+        <div class="card-face card-front">
+          <div class="slide-label" id="frontSlide"></div>
+          <div class="card-title" id="frontTitle"></div>
+          <div class="time" id="frontTime"></div>
+          <div class="objective" id="frontObjective"></div>
+          <div class="oral-tip" id="frontTip"></div>
+        </div>
+
+        <div class="card-face card-back">
+          <div class="slide-label" id="backSlide"></div>
+          <div class="card-title">À dire à l’oral</div>
+          <ul id="backContent"></ul>
+          <div class="oral-tip" id="backTip"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button onclick="previousCard()">Précédent</button>
+      <button class="secondary" onclick="flipCard()">Retourner</button>
+      <button onclick="nextCard()">Suivant</button>
+    </div>
+
+    <div class="small-note">
+      Clique sur la carte pour la retourner. Utilise les flèches du clavier pour avancer ou revenir.
+    </div>
+  </div>
+
+  <script>
+    const flashcards = [
+      {
+        slide: "Slide 1",
+        title: "Titre et introduction du sujet",
+        time: "30 à 45 secondes",
+        objective: "Présenter le sujet du mémoire et poser le cadre général.",
+        frontTip: "Regarder le jury. Ne pas lire le titre mot pour mot.",
+        content: [
+          "Présenter le mémoire : L’avatar entre expression et conformité.",
+          "Dire que le sujet porte sur les pratiques d’incarnation par l’avatar dans les univers virtuels.",
+          "Expliquer que l’avatar n’est pas seulement une image ou un personnage.",
+          "Dire qu’il permet aux individus d’être visibles, d’interagir et de se présenter aux autres."
+        ],
+        backTip: "Phrase clé : l’avatar est un support de présence sociale."
+      },
+      {
+        slide: "Slide 2",
+        title: "Pourquoi s’intéresser aux avatars ?",
+        time: "1 minute",
+        objective: "Justifier l’intérêt du sujet.",
+        frontTip: "Ralentir sur la tension expression personnelle / acceptabilité sociale.",
+        content: [
+          "L’avatar fonctionne comme une interface sociale.",
+          "Il relie trois dimensions : soi, autrui et plateforme.",
+          "Il permet de choisir une apparence, un style, parfois un genre ou un corps.",
+          "Ces choix sont exposés au regard des autres.",
+          "Le sujet interroge donc : comment je me montre, comment je suis perçu, et jusqu’où je peux être différent ?"
+        ],
+        backTip: "Phrase clé : l’avatar engage une tension entre singularité affichée et conformité attendue."
+      },
+      {
+        slide: "Slide 3",
+        title: "Problématique et questions de recherche",
+        time: "1 minute 15",
+        objective: "Présenter les deux questions de recherche.",
+        frontTip: "Être très claire. C’est une slide structurante.",
+        content: [
+          "Question 1 : comment les pratiques d’incarnation articulent-elles expression identitaire et reconnaissance sociale ?",
+          "Question 2 : dans quelle mesure participent-elles à la reproduction, négociation ou contestation des normes sociales ?",
+          "Expliquer que les deux questions sont complémentaires.",
+          "La première porte sur la dynamique identité / reconnaissance.",
+          "La seconde porte sur les stratégies face aux normes : conformité, ajustement, expérimentation ou retour à l’acceptable."
+        ],
+        backTip: "Phrase clé : le mémoire étudie une liberté identitaire négociée dans des espaces socialement structurés."
+      },
+      {
+        slide: "Slide 4",
+        title: "Cadre théorique",
+        time: "1 minute 30",
+        objective: "Montrer les bases académiques sans réciter les auteurs.",
+        frontTip: "Ne pas détailler trop longtemps chaque auteur.",
+        content: [
+          "Goffman : présentation de soi et gestion des impressions.",
+          "Turkle : identités numériques et pluralité du soi en ligne.",
+          "Bourdieu : normes, distinction et hiérarchies symboliques.",
+          "Butler : performativité du genre et de l’identité.",
+          "Mattering : sentiment de compter pour autrui, d’être vu et reconnu.",
+          "Plateformes : contraintes techniques et sociales qui cadrent la personnalisation."
+        ],
+        backTip: "Phrase clé : ces cadres permettent d’analyser l’avatar comme objet social, pas seulement comme objet technique."
+      },
+      {
+        slide: "Slide 5",
+        title: "Le manque dans la littérature",
+        time: "1 minute",
+        objective: "Expliquer le gap académique.",
+        frontTip: "Insister sur l’idée : l’ordinaire n’est pas neutre.",
+        content: [
+          "La littérature s’intéresse souvent aux usages très investis ou très immersifs.",
+          "Les pratiques ordinaires, légères ou quotidiennes sont moins étudiées.",
+          "Pourtant, les participants disent souvent que leur avatar n’est pas profond, mais leurs choix montrent une attention sociale réelle.",
+          "Ils font attention au beau, au style, au regard des autres, au fait de ne pas être ridicule.",
+          "Le mémoire cherche donc à analyser ces pratiques ordinaires comme socialement significatives."
+        ],
+        backTip: "Phrase clé : l’ordinaire est précisément le lieu où se lit la force du social."
+      },
+      {
+        slide: "Slide 6",
+        title: "Méthode et corpus",
+        time: "1 minute 30",
+        objective: "Présenter la rigueur empirique.",
+        frontTip: "Bien préciser que l’étude est qualitative et exploratoire.",
+        content: [
+          "Approche qualitative et exploratoire.",
+          "11 entretiens semi-directifs.",
+          "Environ 16 heures d’échanges.",
+          "Environ 140 pages de verbatims.",
+          "Corpus multi-plateformes : Roblox, Zepeto, Fortnite, Animal Crossing, GTA Online, Les Sims.",
+          "Participants aux usages variés, mais profils non représentatifs statistiquement."
+        ],
+        backTip: "Phrase clé : l’objectif n’est pas de généraliser, mais de comprendre les logiques de sens."
+      },
+      {
+        slide: "Slide 7",
+        title: "Analyse des données",
+        time: "1 minute",
+        objective: "Expliquer comment les entretiens ont été analysés.",
+        frontTip: "Slide à traiter efficacement, sans trop s’attarder.",
+        content: [
+          "Analyse thématique et interprétative.",
+          "Combinaison d’une logique déductive et inductive.",
+          "Déductif : partir du cadre théorique.",
+          "Inductif : faire émerger des catégories depuis les verbatims.",
+          "Catégories clés : expression identitaire, reconnaissance sociale, contrôle de la visibilité, validation esthétique, conformité discrète, ajustements relationnels, subversions limitées."
+        ],
+        backTip: "Phrase clé : l’analyse vise à comprendre les logiques de sens, pas à mesurer une fréquence."
+      },
+      {
+        slide: "Slide 8",
+        title: "Résultat 1 : pratiques ordinaires mais significatives",
+        time: "1 minute 30",
+        objective: "Montrer le décalage entre discours de détachement et investissement réel.",
+        frontTip: "Faire une pause après le verbatim.",
+        content: [
+          "Les participants minimisent souvent leur rapport à l’avatar.",
+          "Ils disent : c’est juste un jeu, ce n’est pas profond, je m’en fiche.",
+          "Mais ils font attention au style, à l’harmonie, au fait de ne pas être ridicule.",
+          "Verbatim clé : “Je dis que je m’en fiche… mais oui, je regarde quand même.”",
+          "Ce décalage est un résultat central.",
+          "L’avatar est souvent léger, mais rarement neutre."
+        ],
+        backTip: "Phrase clé : l’investissement est parfois minimisé, mais il reste socialement réel."
+      },
+      {
+        slide: "Slide 9",
+        title: "Résultat 2 : reconnaissance discrète",
+        time: "1 minute 30",
+        objective: "Expliquer le mattering ordinaire.",
+        frontTip: "Ton posé. C’est un résultat central.",
+        content: [
+          "Les participants ne cherchent pas une reconnaissance spectaculaire.",
+          "Ils cherchent plutôt à être vus, validés, intégrés ou à éviter le ridicule.",
+          "La reconnaissance passe souvent par le goût, le style, l’effort ou les détails.",
+          "Un compliment sur une tenue ou une création peut compter.",
+          "Verbatim clé : “On existe quand les autres nous voient ou réagissent.”",
+          "Le mattering apparaît donc sous forme de micro-validations."
+        ],
+        backTip: "Phrase clé : il ne s’agit pas d’être célèbre, mais de ne pas être invisible."
+      },
+      {
+        slide: "Slide 10",
+        title: "Résultat 3 : normes, conformité et subversion limitée",
+        time: "2 minutes",
+        objective: "Présenter le résultat le plus analytique.",
+        frontTip: "Ralentir sur les trois pôles : conformité, ajustement, subversion limitée.",
+        content: [
+          "Les choix avatarials reproduisent fortement les normes esthétiques.",
+          "Les avatars sont souvent beaux, harmonieux, stylés, crédibles ou sobres.",
+          "Verbatim clé : “Si tu peux choisir, tu choisis beau.”",
+          "La norme est souvent vécue comme du goût personnel ou du bon sens.",
+          "Les normes sont aussi genrées : beauté et harmonie côté profils féminins ; sobriété et crédibilité côté profils masculins.",
+          "Les participants ne sont pas seulement soumis aux normes : ils les négocient.",
+          "Trois pôles : conformité, ajustement, subversion limitée.",
+          "La subversion reste souvent prudente et suivie d’un retour à l’acceptable."
+        ],
+        backTip: "Phrase clé : la conformité est discrète, car elle est rarement nommée comme telle par les participants."
+      },
+      {
+        slide: "Slide 11",
+        title: "Typologie exploratoire",
+        time: "1 minute 30",
+        objective: "Présenter la contribution empirique principale.",
+        frontTip: "Dire clairement que les profils ne sont pas des cases fixes.",
+        content: [
+          "La typologie sert à lire des tendances, pas à classer définitivement les individus.",
+          "Profil 1 : conformistes discrets.",
+          "Profil 2 : esthètes réflexifs.",
+          "Profil 3 : identitaires expressifs.",
+          "Profil 4 : stratèges sociaux et statutaires.",
+          "Profil 5 : subversifs prudents.",
+          "Un même individu peut circuler entre plusieurs profils selon le contexte, la plateforme ou le moment."
+        ],
+        backTip: "Phrase clé : la typologie est exploratoire, non figée et non statistique."
+      },
+      {
+        slide: "Slide 12",
+        title: "Contributions du mémoire",
+        time: "1 minute 30",
+        objective: "Montrer ce que le mémoire apporte.",
+        frontTip: "Être synthétique. Ne pas redévelopper tous les résultats.",
+        content: [
+          "Contribution théorique : conceptualiser le mattering ordinaire dans les univers virtuels.",
+          "Contribution théorique : articuler identité, reconnaissance et normes.",
+          "Contribution empirique : proposer une typologie exploratoire en cinq profils.",
+          "Contribution empirique : analyser un corpus multi-plateformes.",
+          "Contribution pratique : inviter à penser des dispositifs de personnalisation plus inclusifs.",
+          "Les plateformes ne sont pas neutres : elles peuvent renforcer des hiérarchies esthétiques."
+        ],
+        backTip: "Phrase clé : le mémoire montre que les avatars sont des supports de visibilité et de négociation sociale."
+      },
+      {
+        slide: "Slide 13",
+        title: "Limites et ouvertures",
+        time: "1 minute 15",
+        objective: "Montrer la prudence scientifique.",
+        frontTip: "Ne pas s’excuser. Présenter les limites comme des choix de recherche.",
+        content: [
+          "Limite 1 : échantillon limité à 11 entretiens.",
+          "Limite 2 : données déclaratives, sans observation directe des pratiques.",
+          "Limite 3 : possibles biais de recrutement.",
+          "Les résultats ne sont pas généralisables statistiquement.",
+          "Perspective 1 : enquête quantitative pour tester la typologie.",
+          "Perspective 2 : comparaison inter-plateformes.",
+          "Perspective 3 : approche ethnographique ou observationnelle."
+        ],
+        backTip: "Phrase clé : ces limites ouvrent des pistes de recherche futures."
+      },
+      {
+        slide: "Slide 14",
+        title: "Usage de l’IA et conclusion",
+        time: "1 minute 30",
+        objective: "Assumer l’usage de l’IA et conclure fortement.",
+        frontTip: "Marquer une pause avant la dernière phrase.",
+        content: [
+          "IA utilisée ponctuellement pour structurer, reformuler et organiser certaines idées.",
+          "L’IA n’a pas servi à produire les données empiriques.",
+          "Les entretiens, l’analyse, l’interprétation et les décisions finales restent les miens.",
+          "Conclusion : l’avatar n’est pas seulement un outil de liberté identitaire.",
+          "Il révèle aussi la persistance des normes sociales dans les espaces numériques.",
+          "L’avatar est un espace de négociation sociale du soi.",
+          "Phrase finale : les univers virtuels ne suspendent pas le social, ils le reconfigurent."
+        ],
+        backTip: "Dernière phrase à dire lentement, puis pause."
+      }
+    ];
+
+    let currentIndex = 0;
+    let isFlipped = false;
+
+    const card = document.getElementById("card");
+    const progress = document.getElementById("progress");
+
+    const frontSlide = document.getElementById("frontSlide");
+    const frontTitle = document.getElementById("frontTitle");
+    const frontTime = document.getElementById("frontTime");
+    const frontObjective = document.getElementById("frontObjective");
+    const frontTip = document.getElementById("frontTip");
+
+    const backSlide = document.getElementById("backSlide");
+    const backContent = document.getElementById("backContent");
+    const backTip = document.getElementById("backTip");
+
+    function renderCard() {
+      const current = flashcards[currentIndex];
+
+      progress.textContent = `Carte ${currentIndex + 1} / ${flashcards.length}`;
+
+      frontSlide.textContent = current.slide;
+      frontTitle.textContent = current.title;
+      frontTime.textContent = current.time;
+      frontObjective.textContent = current.objective;
+      frontTip.textContent = current.frontTip;
+
+      backSlide.textContent = current.slide;
+      backContent.innerHTML = "";
+      current.content.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        backContent.appendChild(li);
+      });
+      backTip.textContent = current.backTip;
+
+      card.classList.remove("flipped");
+      isFlipped = false;
+    }
+
+    function flipCard() {
+      isFlipped = !isFlipped;
+      card.classList.toggle("flipped", isFlipped);
+    }
+
+    function nextCard() {
+      event.stopPropagation();
+      currentIndex = (currentIndex + 1) % flashcards.length;
+      renderCard();
+    }
+
+    function previousCard() {
+      event.stopPropagation();
+      currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
+      renderCard();
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "ArrowRight") {
+        currentIndex = (currentIndex + 1) % flashcards.length;
+        renderCard();
+      } else if (e.key === "ArrowLeft") {
+        currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
+        renderCard();
+      } else if (e.key === " " || e.key === "Enter") {
+        flipCard();
+      }
+    });
+
+    renderCard();
+  </script>
+</body>
+</html> 
